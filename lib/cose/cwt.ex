@@ -43,6 +43,11 @@ defmodule COSE.CWT do
     |> Sign1.sign_encode(key)
   end
 
+  def sign_encode_cbor(claims, key, custom_claims \\ %{}) do
+    sign_encode(claims, key, custom_claims)
+    |> CBOR.encode()
+  end
+
   def decode_claim_names(claims, custom_claims \\ %{}) do
     claims
     |> Enum.map(fn {key, value} ->
@@ -65,11 +70,17 @@ defmodule COSE.CWT do
   end
 
   def verify_decode(token, key, custom_claims \\ %{}) do
-    if verified_msg = Sign1.verify_decode(token, key) do
+    with {:ok, verified_msg} <- Sign1.verify_decode(token, key),
+         true <- is_struct(verified_msg, Sign1) do
       {:ok, cbor_claims, ""} = CBOR.decode(verified_msg.payload.value)
 
-      cbor_claims
-      |> decode_claim_names(custom_claims)
+      claims =
+        cbor_claims
+        |> decode_claim_names(custom_claims)
+
+      {:ok, claims}
+    else
+      _ -> :error
     end
   end
 

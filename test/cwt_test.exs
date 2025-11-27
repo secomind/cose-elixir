@@ -47,15 +47,16 @@ defmodule COSETest.CWT do
       claims = Map.put(claims, :custom_claim, "this claim is application-specific")
       custom_claims = %{custom_claim: 22}
 
-      token = CWT.sign_encode(claims, key, custom_claims)
+      token = CWT.sign_encode_cbor(claims, key, custom_claims)
       assert is_binary(token)
     end
 
     test "decode token", %{key: key, claims: claims} do
-      token = CWT.sign_encode(claims, key)
+      token = CWT.sign_encode_cbor(claims, key)
 
       # remove `issued_at` since original claims do not have it
-      retrived_claims = CWT.verify_decode(token, key) |> Map.delete(:issued_at)
+      {:ok, cwt} = CWT.verify_decode(token, key)
+      retrived_claims = cwt |> Map.delete(:issued_at)
       assert ^claims = retrived_claims
     end
   end

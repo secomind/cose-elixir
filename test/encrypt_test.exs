@@ -44,7 +44,7 @@ defmodule COSETest.Encrypt do
 
       context = ContextKDF.build(:aes_ccm_16_64_128, %PartyInfo{nonce: <<1>>}, %PartyInfo{}, s)
 
-      alg = COSE.algorithm_from_id(:aes_ccm_16_64_128)
+      alg = COSE.algorithm(:aes_ccm_16_64_128)
 
       assert [^alg, [nil, <<1>>, nil], [nil, nil, nil], [128, %CBOR.Tag{}]] =
                ContextKDF.encode(context)
@@ -79,7 +79,7 @@ defmodule COSETest.Encrypt do
 
       # encryption + cose encoding
       encoded_msg = Encrypt.encrypt_encode(msg, cek, msg.uhdr.iv.value)
-      decoded_msg = Encrypt.decode(encoded_msg)
+      {:ok, decoded_msg} = Encrypt.decode_cbor(encoded_msg)
       {:ok, decrypted_msg} = Encrypt.decrypt(decoded_msg, cek, decoded_msg.uhdr.iv.value)
       [recp] = decrypted_msg.recipients
       s = %SuppPubInfo{key_data_length: 128, protected: Headers.tag_phdr(recp.phdr)}

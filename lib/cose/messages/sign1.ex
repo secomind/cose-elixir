@@ -29,9 +29,13 @@ defmodule COSE.Messages.Sign1 do
   def sign(msg, key, external_aad \\ <<>>) do
     to_be_signed = CBOR.encode(sig_structure(msg, external_aad))
 
+    signature =
+      Keys.sign(key, to_be_signed)
+      |> COSE.tag_as_byte()
+
     %__MODULE__{
       msg
-      | signature: Keys.sign(key, to_be_signed)
+      | signature: signature
     }
   end
 

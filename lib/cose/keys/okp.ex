@@ -27,7 +27,6 @@ end
 defimpl COSE.Keys.Key, for: COSE.Keys.OKP do
   def sign(key, to_be_signed) do
     :crypto.sign(:eddsa, :sha256, to_be_signed, [key.d, :ed25519])
-    |> COSE.tag_as_byte()
   end
 
   def verify(ver_key, to_be_verified, signature) do

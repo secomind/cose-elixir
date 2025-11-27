@@ -53,14 +53,14 @@ defmodule COSETest.Sign1 do
     end
 
     test "encode with okp", %{okp_key: key, msg: msg} do
-      encoded_msg = Sign1.sign_encode(msg, key)
-      verified_msg = Messages.Sign1.verify_decode(encoded_msg, key)
+      encoded_msg = Sign1.sign_encode_cbor(msg, key)
+      {:ok, verified_msg} = Messages.Sign1.verify_decode(encoded_msg, key)
       assert verified_msg == Sign1.sign(msg, key)
     end
 
     test "encode with ecc", %{ecc_key: key, msg: msg} do
-      encoded_msg = Sign1.sign_encode(msg, key)
-      verified_msg = Messages.Sign1.verify_decode(encoded_msg, key)
+      encoded_msg = Sign1.sign_encode_cbor(msg, key)
+      {:ok, verified_msg} = Messages.Sign1.verify_decode(encoded_msg, key)
 
       # signature could be different
       fields = [:payload, :phdr, :uhdr]
@@ -68,8 +68,8 @@ defmodule COSETest.Sign1 do
     end
 
     test "encode with rsa", %{rsa_key: key, msg: msg} do
-      encoded_msg = Sign1.sign_encode(msg, key)
-      verified_msg = Messages.Sign1.verify_decode(encoded_msg, key)
+      encoded_msg = Sign1.sign_encode_cbor(msg, key)
+      {:ok, verified_msg} = Messages.Sign1.verify_decode(encoded_msg, key)
       assert verified_msg == Sign1.sign(msg, key)
     end
   end

@@ -72,7 +72,7 @@ defmodule COSE.Messages.Mac0 do
       decoded =
         %__MODULE__{
           phdr: COSE.Headers.decode_phdr(phdr),
-          uhdr: COSE.Headers.translate(uhdr),
+          uhdr: COSE.Headers.translate_back(uhdr),
           payload: payload,
           tag: tag
         }

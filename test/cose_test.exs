@@ -13,8 +13,6 @@ defmodule COSETest do
     assert Headers.translate(%{alg: :eddsa}) == %{1 => -8}
     assert Headers.translate(%{alg: :aes_ccm_16_64_128}) == %{1 => 10}
 
-    assert Headers.translate(%{1 => -8}) == %{alg: :eddsa}
-
     assert Headers.tag_phdr(%{alg: :eddsa}) == COSE.tag_as_byte(<<0xA1, 0x01, 0x27>>)
     phdr = Headers.tag_phdr(%{alg: :eddsa})
     assert Headers.decode_phdr(phdr) == %{alg: :eddsa}

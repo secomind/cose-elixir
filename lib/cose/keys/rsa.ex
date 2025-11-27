@@ -78,7 +78,6 @@ defimpl COSE.Keys.Key, for: COSE.Keys.RSA do
       [key.e, key.n, key.d]
 
     :crypto.sign(:rsa, digest, to_be_signed, private_key, [])
-    |> COSE.tag_as_byte()
   end
 
   def verify(key, to_be_verified, signature) do
