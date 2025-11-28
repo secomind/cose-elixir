@@ -15,6 +15,6 @@ defmodule COSETest do
 
     assert Headers.tag_phdr(%{alg: :eddsa}) == COSE.tag_as_byte(<<0xA1, 0x01, 0x27>>)
     phdr = Headers.tag_phdr(%{alg: :eddsa})
-    assert Headers.decode_phdr(phdr) == %{alg: :eddsa}
+    assert Headers.decode_phdr(phdr) == {:ok, %{alg: :eddsa}}
   end
 end

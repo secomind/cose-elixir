@@ -68,19 +68,18 @@ defmodule COSE.Messages.Encrypt0 do
   end
 
   def decode(msg) do
-    case msg do
-      %CBOR.Tag{tag: 16, value: [phdr, uhdr, ciphertext]} ->
-        decoded =
-          %__MODULE__{
-            phdr: COSE.Headers.decode_phdr(phdr),
-            uhdr: COSE.Headers.translate_back(uhdr),
-            ciphertext: ciphertext
-          }
+    with %CBOR.Tag{tag: 16, value: [phdr, uhdr, ciphertext]} <- msg,
+         {:ok, phdr} <- COSE.Headers.decode_phdr(phdr) do
+      decoded =
+        %__MODULE__{
+          phdr: phdr,
+          uhdr: COSE.Headers.translate_back(uhdr),
+          ciphertext: ciphertext
+        }
 
-        {:ok, decoded}
-
-      _ ->
-        :error
+      {:ok, decoded}
+    else
+      _ -> :error
     end
   end
 

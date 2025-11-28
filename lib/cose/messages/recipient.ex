@@ -75,10 +75,17 @@ defmodule COSE.Messages.Recipient do
   end
 
   def decode([phdr, uhdr, ciphertext]) do
-    %__MODULE__{phdr: COSE.Headers.decode_phdr(phdr), uhdr: uhdr, ciphertext: ciphertext}
+    with {:ok, phdr} <- COSE.Headers.decode_phdr(phdr) do
+      {:ok, %__MODULE__{phdr: phdr, uhdr: uhdr, ciphertext: ciphertext}}
+    end
   end
 
   def decode_many(recipients) do
-    Enum.map(recipients, &decode/1)
+    recipients = Enum.map(recipients, &decode/1)
+
+    case Enum.find(recipients, :ok, &(&1 == :error)) do
+      :ok -> {:ok, Enum.map(recipients, fn {:ok, recipient} -> recipient end)}
+      :error -> :error
+    end
   end
 end

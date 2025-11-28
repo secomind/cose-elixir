@@ -68,10 +68,11 @@ defmodule COSE.Messages.Mac0 do
 
   def from_message(msg) do
     with %CBOR.Tag{tag: 17, value: [phdr, uhdr, payload_tag, tag]} <- msg,
-         %CBOR.Tag{tag: :bytes, value: payload} <- payload_tag do
+         %CBOR.Tag{tag: :bytes, value: payload} <- payload_tag,
+         {:ok, phdr} <- COSE.Headers.decode_phdr(phdr) do
       decoded =
         %__MODULE__{
-          phdr: COSE.Headers.decode_phdr(phdr),
+          phdr: phdr,
           uhdr: COSE.Headers.translate_back(uhdr),
           payload: payload,
           tag: tag

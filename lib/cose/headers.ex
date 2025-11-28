@@ -34,7 +34,9 @@ defmodule COSE.Headers do
   end
 
   def decode_phdr(phdr_bytes) do
-    {:ok, phdr_map, ""} = CBOR.decode(phdr_bytes.value)
-    translate_back(phdr_map)
+    case CBOR.decode(phdr_bytes.value) do
+      {:ok, phdr_map = %{}, ""} -> {:ok, translate_back(phdr_map)}
+      _ -> :error
+    end
   end
 end

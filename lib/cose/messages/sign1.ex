@@ -56,20 +56,19 @@ defmodule COSE.Messages.Sign1 do
   end
 
   def decode(msg) do
-    case msg do
-      %CBOR.Tag{tag: 18, value: [phdr, uhdr, payload, signature]} ->
-        msg =
-          %__MODULE__{
-            phdr: COSE.Headers.decode_phdr(phdr),
-            uhdr: uhdr,
-            payload: payload,
-            signature: signature
-          }
+    with %CBOR.Tag{tag: 18, value: [phdr, uhdr, payload, signature]} <- msg,
+         {:ok, phdr} <- COSE.Headers.decode_phdr(phdr) do
+      msg =
+        %__MODULE__{
+          phdr: phdr,
+          uhdr: uhdr,
+          payload: payload,
+          signature: signature
+        }
 
-        {:ok, msg}
-
-      _ ->
-        :error
+      {:ok, msg}
+    else
+      _ -> :error
     end
   end
 
