@@ -77,11 +77,7 @@ defmodule COSE.Messages.Sign1 do
     to_be_verified = CBOR.encode(sig_structure(msg, external_aad))
     %CBOR.Tag{tag: :bytes, value: signature} = msg.signature
 
-    if Keys.verify(ver_key, to_be_verified, signature) do
-      msg
-    else
-      false
-    end
+    Keys.verify(ver_key, to_be_verified, signature)
   end
 
   def sig_structure(msg, external_aad \\ <<>>) do
