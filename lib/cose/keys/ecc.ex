@@ -54,13 +54,6 @@ defmodule COSE.Keys.ECC do
     end
   end
 
-  def digest_type(key) do
-    case key.alg do
-      :es256 -> :sha256
-      :es384 -> :sha384
-    end
-  end
-
   def curve(key) do
     case key.alg do
       :es256 -> :secp256r1
@@ -91,16 +84,14 @@ end
 defimpl COSE.Keys.Key, for: COSE.Keys.ECC do
   alias COSE.Keys.ECC
 
-  def sign(key, to_be_signed) do
+  def sign(key, digest_type, to_be_signed) do
     curve = ECC.curve(key)
-    digest_type = ECC.digest_type(key)
 
     der_signature = :crypto.sign(:ecdsa, digest_type, to_be_signed, [key.d, curve])
     der_to_raw(der_signature)
   end
 
-  def verify(ver_key, to_be_verified, raw_signature) do
-    digest_type = ECC.digest_type(ver_key)
+  def verify(ver_key, digest_type, to_be_verified, raw_signature) do
     curve = ECC.curve(ver_key)
     pub_key_bin = ECC.public_key(ver_key)
     der_signature = raw_to_der(raw_signature)

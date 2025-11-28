@@ -1,6 +1,6 @@
 defprotocol COSE.Keys.Key do
-  def sign(key, to_be_signed)
-  def verify(key, to_be_verified, signature)
+  def sign(key, digest_type, to_be_signed)
+  def verify(key, digest_type, to_be_verified, signature)
 end
 
 defmodule COSE.Keys do
@@ -11,8 +11,10 @@ defmodule COSE.Keys do
   @oid_rsa {1, 2, 840, 113_549, 1, 1, 1}
   @oid_ec {1, 2, 840, 10045, 2, 1}
 
-  def sign(key, to_be_signed), do: Key.sign(key, to_be_signed)
-  def verify(key, to_be_verified, signature), do: Key.verify(key, to_be_verified, signature)
+  def sign(key, digest_type, to_be_signed), do: Key.sign(key, digest_type, to_be_signed)
+
+  def verify(key, digest_type, to_be_verified, signature),
+    do: Key.verify(key, digest_type, to_be_verified, signature)
 
   def from_pem(pem, password \\ "") do
     pem

@@ -25,11 +25,11 @@ defmodule COSE.Keys.OKP do
 end
 
 defimpl COSE.Keys.Key, for: COSE.Keys.OKP do
-  def sign(key, to_be_signed) do
-    :crypto.sign(:eddsa, :sha256, to_be_signed, [key.d, :ed25519])
+  def sign(key, digest_type, to_be_signed) do
+    :crypto.sign(:eddsa, digest_type, to_be_signed, [key.d, :ed25519])
   end
 
-  def verify(ver_key, to_be_verified, signature) do
-    :crypto.verify(:eddsa, :sha256, to_be_verified, signature, [ver_key.x, :ed25519])
+  def verify(ver_key, digest_type, to_be_verified, signature) do
+    :crypto.verify(:eddsa, digest_type, to_be_verified, signature, [ver_key.x, :ed25519])
   end
 end

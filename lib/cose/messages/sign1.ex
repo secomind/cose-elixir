@@ -8,8 +8,8 @@ defmodule COSE.Messages.Sign1 do
     %__MODULE__{phdr: phdr, uhdr: uhdr, payload: COSE.tag_as_byte(payload)}
   end
 
-  def sign_encode(msg, key) do
-    msg = sign(msg, key)
+  def sign_encode(msg, key, digest_type \\ nil) do
+    msg = sign(msg, key, digest_type)
 
     value = [
       COSE.Headers.tag_phdr(msg.phdr),
@@ -21,16 +21,17 @@ defmodule COSE.Messages.Sign1 do
     %CBOR.Tag{tag: 18, value: value}
   end
 
-  def sign_encode_cbor(msg, key) do
-    sign_encode(msg, key)
+  def sign_encode_cbor(msg, key, digest_type \\ nil) do
+    sign_encode(msg, key, digest_type)
     |> CBOR.encode()
   end
 
-  def sign(msg, key, external_aad \\ <<>>) do
+  def sign(msg, key, digest_type \\ nil, external_aad \\ <<>>) do
+    digest_type = digest_type(msg, digest_type)
     to_be_signed = CBOR.encode(sig_structure(msg, external_aad))
 
     signature =
-      Keys.sign(key, to_be_signed)
+      Keys.sign(key, digest_type, to_be_signed)
       |> COSE.tag_as_byte()
 
     %__MODULE__{
@@ -72,11 +73,12 @@ defmodule COSE.Messages.Sign1 do
     end
   end
 
-  def verify(msg, ver_key, external_aad \\ <<>>) do
+  def verify(msg, ver_key, digest_type \\ nil, external_aad \\ <<>>) do
     to_be_verified = CBOR.encode(sig_structure(msg, external_aad))
     %CBOR.Tag{tag: :bytes, value: signature} = msg.signature
+    digest_type = digest_type(msg, digest_type)
 
-    Keys.verify(ver_key, to_be_verified, signature)
+    Keys.verify(ver_key, digest_type, to_be_verified, signature)
   end
 
   def sig_structure(msg, external_aad \\ <<>>) do
@@ -87,4 +89,17 @@ defmodule COSE.Messages.Sign1 do
       msg.payload
     ]
   end
+
+  defp digest_type(msg, nil) do
+    case Map.fetch!(msg.phdr, :alg) do
+      :es256 -> :sha256
+      :rs256 -> :sha256
+      :ps256 -> :sha256
+      :es384 -> :sha384
+      :rs384 -> :sha384
+      other -> other
+    end
+  end
+
+  defp digest_type(_msg, digest), do: digest
 end

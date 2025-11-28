@@ -59,31 +59,19 @@ defmodule COSE.Keys.RSA do
   defp bits(:rs384), do: 3072
 
   defp modulus_bits(modulus), do: modulus |> :binary.encode_unsigned() |> bit_size()
-
-  def digest_type(key) do
-    case key.alg do
-      :rs256 -> :sha256
-      :rs384 -> :sha384
-    end
-  end
 end
 
 defimpl COSE.Keys.Key, for: COSE.Keys.RSA do
-  alias COSE.Keys.RSA
-
-  def sign(key, to_be_signed) do
-    digest = RSA.digest_type(key)
-
+  def sign(key, digest_type, to_be_signed) do
     private_key =
       [key.e, key.n, key.d]
 
-    :crypto.sign(:rsa, digest, to_be_signed, private_key, [])
+    :crypto.sign(:rsa, digest_type, to_be_signed, private_key, [])
   end
 
-  def verify(key, to_be_verified, signature) do
-    digest = RSA.digest_type(key)
+  def verify(key, digest_type, to_be_verified, signature) do
     public_key = [key.e, key.n]
 
-    :crypto.verify(:rsa, digest, to_be_verified, signature, public_key, [])
+    :crypto.verify(:rsa, digest_type, to_be_verified, signature, public_key, [])
   end
 end
