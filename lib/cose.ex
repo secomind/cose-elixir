@@ -21,14 +21,30 @@ defmodule COSE do
 
   @cose_algs %{
     direct: -6,
+    aes_128_gcm: 1,
+    aes_192_gcm: 2,
+    aes_256_gcm: 3,
     aes_ccm_16_64_128: 10,
+    aes_ccm_16_64_256: 11,
+    aes_ccm_64_64_128: 12,
+    aes_ccm_64_64_256: 13,
+    aes_ccm_16_128_128: 30,
+    aes_ccm_16_128_256: 31,
+    aes_ccm_64_128_128: 32,
+    aes_ccm_64_128_256: 33,
     ecdh_ss_hkdf_256: -27,
     eddsa: -8,
     es256: -7,
     es384: -35,
     es512: -36,
     rs256: -257,
-    rs384: -258
+    rs384: -258,
+    aes_128_cbc: -17760703,
+    aes_128_ctr: -17760704,
+    aes_256_cbc: -17760705,
+    aes_256_ctr: -17760706,
+    epid10: -2000810,
+    epid11: -2000811
   }
 
   def algorithm(alg), do: Map.get(@cose_algs, alg, alg)
