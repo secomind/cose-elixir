@@ -88,7 +88,7 @@ defmodule COSE.Messages.Mac0 do
     [
       "MAC0",
       (msg.phdr == %{} && COSE.tag_as_byte(<<>>)) || COSE.Headers.tag_phdr(msg.phdr),
-      external_aad,
+      COSE.tag_as_byte(external_aad),
       COSE.tag_as_byte(msg.payload)
     ]
   end

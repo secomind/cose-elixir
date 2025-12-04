@@ -87,7 +87,7 @@ defmodule COSE.Messages.Encrypt0 do
     [
       "Encrypt0",
       (msg.phdr == %{} && COSE.tag_as_byte(<<>>)) || COSE.Headers.tag_phdr(msg.phdr),
-      external_aad
+      COSE.tag_as_byte(external_aad)
     ]
   end
 
