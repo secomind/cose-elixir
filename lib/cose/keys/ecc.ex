@@ -61,6 +61,13 @@ defmodule COSE.Keys.ECC do
     end
   end
 
+  def key_size(key) do
+    case key.alg do
+      :es256 -> 32
+      :es384 -> 48
+    end
+  end
+
   def public_key(key) do
     <<4, key.x::binary, key.y::binary>>
   end
@@ -88,20 +95,36 @@ defimpl COSE.Keys.Key, for: COSE.Keys.ECC do
     curve = ECC.curve(key)
 
     der_signature = :crypto.sign(:ecdsa, digest_type, to_be_signed, [key.d, curve])
-    der_to_raw(der_signature)
+
+    key_size = ECC.key_size(key)
+    der_to_raw(der_signature, key_size)
   end
 
   def verify(ver_key, digest_type, to_be_verified, raw_signature) do
     curve = ECC.curve(ver_key)
     pub_key_bin = ECC.public_key(ver_key)
-    der_signature = raw_to_der(raw_signature)
 
-    :crypto.verify(:ecdsa, digest_type, to_be_verified, der_signature, [pub_key_bin, curve])
+    key_size = ECC.key_size(ver_key)
+
+    case raw_to_der(raw_signature, key_size) do
+      {:ok, der_signature} ->
+        :crypto.verify(:ecdsa, digest_type, to_be_verified, der_signature, [pub_key_bin, curve])
+
+      _ ->
+        false
+    end
   end
 
-  def raw_to_der(<<r::binary-32, s::binary-32>>) do
-    (encode_integer(r) <> encode_integer(s))
-    |> wrap_sequence()
+  def raw_to_der(raw_sig, key_size) do
+    case raw_sig do
+      <<r::binary-size(key_size), s::binary-size(key_size)>> ->
+        (encode_integer(r) <> encode_integer(s))
+        |> wrap_sequence()
+        |> then(&{:ok, &1})
+
+      _ ->
+        :error
+    end
   end
 
   defp wrap_sequence(content) do
@@ -126,7 +149,7 @@ defimpl COSE.Keys.Key, for: COSE.Keys.ECC do
   defp trim_leading_zeros(<<0, rest::binary>>), do: trim_leading_zeros(rest)
   defp trim_leading_zeros(bin), do: bin
 
-  def der_to_raw(der, key_size \\ 32) do
+  def der_to_raw(der, key_size) do
     {r, s} = decode_der_sequence(der)
 
     pad_scalar(r, key_size) <> pad_scalar(s, key_size)
