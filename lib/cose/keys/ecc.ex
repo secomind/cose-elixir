@@ -54,6 +54,12 @@ defmodule COSE.Keys.ECC do
     end
   end
 
+  def to_record(%__MODULE__{} = key) do
+    oid = get_oid_from_alg(key.alg)
+    pub_key = <<4, key.x::binary, key.y::binary>>
+    {:ECPrivateKey, 1, key.d, {:namedCurve, oid}, pub_key, :asn1_NOVALUE}
+  end
+
   def curve(key) do
     case key.alg do
       :es256 -> :secp256r1
@@ -74,6 +80,9 @@ defmodule COSE.Keys.ECC do
 
   defp get_alg_from_oid({1, 2, 840, 10045, 3, 1, 7}), do: :es256
   defp get_alg_from_oid({1, 3, 132, 0, 34}), do: :es384
+
+  defp get_oid_from_alg(:es256), do: {1, 2, 840, 10045, 3, 1, 7}
+  defp get_oid_from_alg(:es384), do: {1, 3, 132, 0, 34}
 
   defp get_curve_info(:es256), do: {:secp256r1, :p256, 32}
   defp get_curve_info(:es384), do: {:secp384r1, :p384, 48}
