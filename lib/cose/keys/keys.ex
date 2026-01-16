@@ -22,6 +22,20 @@ defmodule COSE.Keys do
     |> Enum.find_value(:error, fn pem_entry -> safe_decode(pem_entry, password) end)
   end
 
+  def to_pem(key_struct) do
+    case key_struct do
+      %ECC{} ->
+        key_record = ECC.to_record(key_struct)
+        der_bytes = :public_key.der_encode(:ECPrivateKey, key_record)
+        :public_key.pem_encode([{:ECPrivateKey, der_bytes, :not_encrypted}])
+
+      %RSA{} ->
+        key_record = RSA.to_record(key_struct)
+        der_bytes = :public_key.der_encode(:RSAPrivateKey, key_record)
+        :public_key.pem_encode([{:RSAPrivateKey, der_bytes, :not_encrypted}])
+    end
+  end
+
   defp safe_decode(pem_entry, password) do
     try do
       :public_key.pem_entry_decode(pem_entry, password)

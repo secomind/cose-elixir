@@ -56,25 +56,23 @@ defmodule COSE.Keys.RSA do
   end
 
   def to_record(%__MODULE__{} = key) do
-    public_key_record =
-      {:RSAPublicKey, :binary.decode_unsigned(key.n), :binary.decode_unsigned(key.e)}
+    {
+      :RSAPrivateKey,
+      0,
+      :binary.decode_unsigned(key.n),
+      :binary.decode_unsigned(key.e),
+      :binary.decode_unsigned(key.d),
+      :binary.decode_unsigned(key.p),
+      :binary.decode_unsigned(key.q),
+      :binary.decode_unsigned(key.dp),
+      :binary.decode_unsigned(key.dq),
+      :binary.decode_unsigned(key.qi),
+      :asn1_NOVALUE
+    }
+  end
 
-    private_key_record =
-      {
-        :RSAPrivateKey,
-        0,
-        :binary.decode_unsigned(key.n),
-        :binary.decode_unsigned(key.e),
-        :binary.decode_unsigned(key.d),
-        :binary.decode_unsigned(key.p),
-        :binary.decode_unsigned(key.q),
-        :binary.decode_unsigned(key.dp),
-        :binary.decode_unsigned(key.dq),
-        :binary.decode_unsigned(key.qi),
-        :asn1_NOVALUE
-      }
-
-    {public_key_record, private_key_record}
+  def to_public_record(%__MODULE__{} = key) do
+    {:RSAPublicKey, :binary.decode_unsigned(key.n), :binary.decode_unsigned(key.e)}
   end
 
   defp bits(:rs256), do: 2048

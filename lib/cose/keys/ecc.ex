@@ -60,6 +60,11 @@ defmodule COSE.Keys.ECC do
     {:ECPrivateKey, 1, key.d, {:namedCurve, oid}, pub_key, :asn1_NOVALUE}
   end
 
+  def to_public_record(%__MODULE__{} = key) do
+    pub_key = <<4, key.x::binary, key.y::binary>>
+    {:ECPoint, pub_key}
+  end
+
   def curve(key) do
     case key.alg do
       :es256 -> :secp256r1
