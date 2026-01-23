@@ -75,6 +75,10 @@ defmodule COSE.Keys.RSA do
     {:RSAPublicKey, :binary.decode_unsigned(key.n), :binary.decode_unsigned(key.e)}
   end
 
+  def public_key(key) do
+    <<key.n::binary, key.e::binary>>
+  end
+
   defp bits(:rs256), do: 2048
   defp bits(:rs384), do: 3072
 
