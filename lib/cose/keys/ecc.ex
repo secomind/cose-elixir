@@ -111,7 +111,8 @@ defimpl COSE.Keys.Key, for: COSE.Keys.ECC do
     der_signature = :crypto.sign(:ecdsa, digest_type, to_be_signed, [key.d, curve])
 
     key_size = ECC.key_size(key)
-    der_to_raw(der_signature, key_size)
+    signature = der_to_raw(der_signature, key_size)
+    {:ok, signature}
   end
 
   def verify(ver_key, digest_type, to_be_verified, raw_signature) do
@@ -120,12 +121,11 @@ defimpl COSE.Keys.Key, for: COSE.Keys.ECC do
 
     key_size = ECC.key_size(ver_key)
 
-    case raw_to_der(raw_signature, key_size) do
-      {:ok, der_signature} ->
-        :crypto.verify(:ecdsa, digest_type, to_be_verified, der_signature, [pub_key_bin, curve])
-
-      _ ->
-        false
+    with {:ok, der} <- raw_to_der(raw_signature, key_size),
+         true <- :crypto.verify(:ecdsa, digest_type, to_be_verified, der, [pub_key_bin, curve]) do
+      :ok
+    else
+      _ -> {:error, :invalid_signature}
     end
   end
 

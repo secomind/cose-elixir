@@ -26,10 +26,14 @@ end
 
 defimpl COSE.Keys.Key, for: COSE.Keys.OKP do
   def sign(key, digest_type, to_be_signed) do
-    :crypto.sign(:eddsa, digest_type, to_be_signed, [key.d, :ed25519])
+    signature = :crypto.sign(:eddsa, digest_type, to_be_signed, [key.d, :ed25519])
+    {:ok, signature}
   end
 
   def verify(ver_key, digest_type, to_be_verified, signature) do
-    :crypto.verify(:eddsa, digest_type, to_be_verified, signature, [ver_key.x, :ed25519])
+    case :crypto.verify(:eddsa, digest_type, to_be_verified, signature, [ver_key.x, :ed25519]) do
+      true -> :ok
+      false -> {:error, :invalid_signature}
+    end
   end
 end

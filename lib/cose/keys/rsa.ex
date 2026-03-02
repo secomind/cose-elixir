@@ -90,12 +90,16 @@ defimpl COSE.Keys.Key, for: COSE.Keys.RSA do
     private_key =
       [key.e, key.n, key.d]
 
-    :crypto.sign(:rsa, digest_type, to_be_signed, private_key, [])
+    signature = :crypto.sign(:rsa, digest_type, to_be_signed, private_key, [])
+    {:ok, signature}
   end
 
   def verify(key, digest_type, to_be_verified, signature) do
     public_key = [key.e, key.n]
 
-    :crypto.verify(:rsa, digest_type, to_be_verified, signature, public_key, [])
+    case :crypto.verify(:rsa, digest_type, to_be_verified, signature, public_key, []) do
+      true -> :ok
+      false -> {:error, :invalid_signature}
+    end
   end
 end

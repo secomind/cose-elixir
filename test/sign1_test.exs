@@ -17,20 +17,20 @@ defmodule COSETest.Sign1 do
     end
 
     test "sign", %{key: key, msg: msg} do
-      msg = Sign1.sign(msg, key)
-      assert Sign1.verify(msg, key)
+      {:ok, msg} = Sign1.sign(msg, key)
+      assert :ok == Sign1.verify(msg, key)
 
       # alter signature
       <<_::binary-size(3)>> <> tmp = msg.signature.value
       altered_signature = "aaa" <> tmp
       altered_msg = Map.put(msg, :signature, COSE.tag_as_byte(altered_signature))
-      refute Sign1.verify(altered_msg, key)
+      assert {:error, _} = Sign1.verify(altered_msg, key)
     end
 
     test "encode", %{key: key, msg: msg} do
-      encoded_msg = Sign1.sign_encode_cbor(msg, key)
+      {:ok, encoded_msg} = Sign1.sign_encode_cbor(msg, key)
       {:ok, verified_msg} = Messages.Sign1.verify_decode(encoded_msg, key)
-      assert verified_msg == Sign1.sign(msg, key)
+      assert {:ok, verified_msg} == Sign1.sign(msg, key)
     end
   end
 
@@ -43,23 +43,23 @@ defmodule COSETest.Sign1 do
     end
 
     test "sign", %{key: key, msg: msg} do
-      msg = Sign1.sign(msg, key)
-      assert Sign1.verify(msg, key)
+      {:ok, msg} = Sign1.sign(msg, key)
+      assert :ok == Sign1.verify(msg, key)
 
       # alter signature
       <<_::binary-size(3)>> <> tmp = msg.signature.value
       altered_signature = "aaa" <> tmp
       altered_msg = Map.put(msg, :signature, COSE.tag_as_byte(altered_signature))
-      refute Sign1.verify(altered_msg, key)
+      assert {:error, _} = Sign1.verify(altered_msg, key)
     end
 
     test "encode", %{key: key, msg: msg} do
-      encoded_msg = Sign1.sign_encode_cbor(msg, key)
+      {:ok, encoded_msg} = Sign1.sign_encode_cbor(msg, key)
       {:ok, verified_msg} = Messages.Sign1.verify_decode(encoded_msg, key)
 
       # signature could be different
       fields = [:payload, :phdr, :uhdr]
-      assert Map.take(verified_msg, fields) == Sign1.sign(msg, key) |> Map.take(fields)
+      assert Map.take(verified_msg, fields) == Sign1.sign(msg, key) |> elem(1) |> Map.take(fields)
     end
   end
 
@@ -72,20 +72,20 @@ defmodule COSETest.Sign1 do
     end
 
     test "sign with rsa", %{key: key, msg: msg} do
-      msg = Sign1.sign(msg, key)
-      assert Sign1.verify(msg, key)
+      {:ok, msg} = Sign1.sign(msg, key)
+      assert :ok = Sign1.verify(msg, key)
 
       # alter signature
       <<_::binary-size(3)>> <> tmp = msg.signature.value
       altered_signature = "aaa" <> tmp
       altered_msg = Map.put(msg, :signature, COSE.tag_as_byte(altered_signature))
-      refute Sign1.verify(altered_msg, key)
+      assert {:error, _} = Sign1.verify(altered_msg, key)
     end
 
     test "encode with rsa", %{key: key, msg: msg} do
-      encoded_msg = Sign1.sign_encode_cbor(msg, key)
+      {:ok, encoded_msg} = Sign1.sign_encode_cbor(msg, key)
       {:ok, verified_msg} = Messages.Sign1.verify_decode(encoded_msg, key)
-      assert verified_msg == Sign1.sign(msg, key)
+      assert {:ok, verified_msg} == Sign1.sign(msg, key)
     end
   end
 end

@@ -9,44 +9,40 @@ defmodule COSE.Messages.Sign1 do
   end
 
   def sign_encode(msg, key, digest_type \\ nil) do
-    msg = sign(msg, key, digest_type)
+    with {:ok, msg} <- sign(msg, key, digest_type) do
+      value = [
+        COSE.Headers.tag_phdr(msg.phdr),
+        msg.uhdr,
+        msg.payload,
+        msg.signature
+      ]
 
-    value = [
-      COSE.Headers.tag_phdr(msg.phdr),
-      msg.uhdr,
-      msg.payload,
-      msg.signature
-    ]
-
-    %CBOR.Tag{tag: 18, value: value}
+      result = %CBOR.Tag{tag: 18, value: value}
+      {:ok, result}
+    end
   end
 
   def sign_encode_cbor(msg, key, digest_type \\ nil) do
-    sign_encode(msg, key, digest_type)
-    |> CBOR.encode()
+    with {:ok, signed} <- sign_encode(msg, key, digest_type) do
+      encoded = CBOR.encode(signed)
+      {:ok, encoded}
+    end
   end
 
   def sign(msg, key, digest_type \\ nil, external_aad \\ <<>>) do
     digest_type = digest_type(msg, digest_type)
     to_be_signed = CBOR.encode(sig_structure(msg, external_aad))
 
-    signature =
-      Keys.sign(key, digest_type, to_be_signed)
-      |> COSE.tag_as_byte()
-
-    %__MODULE__{
-      msg
-      | signature: signature
-    }
+    with {:ok, signature} <- Keys.sign(key, digest_type, to_be_signed) do
+      msg = %{msg | signature: COSE.tag_as_byte(signature)}
+      {:ok, msg}
+    end
   end
 
   def verify_decode(encoded_msg, key) do
-    with {:ok, msg} <- decode_cbor(encoded_msg) do
-      if verify(msg, key) do
-        {:ok, msg}
-      else
-        :error
-      end
+    with {:ok, msg} <- decode_cbor(encoded_msg),
+         :ok <- verify(msg, key) do
+      {:ok, msg}
     end
   end
 

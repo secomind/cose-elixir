@@ -44,8 +44,10 @@ defmodule COSE.CWT do
   end
 
   def sign_encode_cbor(claims, key, custom_claims \\ %{}) do
-    sign_encode(claims, key, custom_claims)
-    |> CBOR.encode()
+    with {:ok, msg} <- sign_encode(claims, key, custom_claims) do
+      msg = CBOR.encode(msg)
+      {:ok, msg}
+    end
   end
 
   def decode_claim_names(claims, custom_claims \\ %{}) do
