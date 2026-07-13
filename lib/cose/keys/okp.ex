@@ -30,9 +30,10 @@ defmodule COSE.Keys.OKP do
   validation for that specific algorithm
   """
   @spec decode(map()) :: {:ok, %__MODULE__{}} | {:error, :invalid_cose_key}
-  def decode(%{@kty => @kty_okp, @crv => crv_int, @x => x})
-      when is_binary(x) and byte_size(x) == @x25519_key_size do
-    with {:ok, crv_atom} <- Ecto.Type.load(@crv_enum, crv_int) do
+  def decode(%{@kty => @kty_okp, @crv => crv_int, @x => x_in}) do
+    with {:ok, crv_atom} <- Ecto.Type.load(@crv_enum, crv_int),
+         {:ok, x} <- unwrap_bytes(x_in),
+         true <- byte_size(x) == @x25519_key_size do
       {:ok, %__MODULE__{kty: :okp, crv: crv_atom, x: x}}
     else
       _ -> {:error, :invalid_cose_key}
@@ -40,6 +41,10 @@ defmodule COSE.Keys.OKP do
   end
 
   def decode(_), do: {:error, :invalid_cose_key}
+
+  defp unwrap_bytes(%CBOR.Tag{tag: :bytes, value: bin}) when is_binary(bin), do: {:ok, bin}
+  defp unwrap_bytes(bin) when is_binary(bin), do: {:ok, bin}
+  defp unwrap_bytes(_), do: :error
 
   def generate(:enc) do
     {x, d} = :crypto.generate_key(:eddh, :x25519)

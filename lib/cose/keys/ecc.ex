@@ -30,9 +30,10 @@ defmodule COSE.Keys.ECC do
     }
   end
 
-  def decode(%{@kty => @kty_ec2, @crv => crv_int, @x => x, @y => y})
-      when is_binary(x) and is_binary(y) do
-    with {:ok, crv_atom} <- Ecto.Type.load(@crv_enum, crv_int) do
+  def decode(%{@kty => @kty_ec2, @crv => crv_int, @x => x_in, @y => y_in}) do
+    with {:ok, crv_atom} <- Ecto.Type.load(@crv_enum, crv_int),
+         {:ok, x} <- unwrap_bytes(x_in),
+         {:ok, y} <- unwrap_bytes(y_in) do
       alg = %{p256: :es256, p384: :es384}[crv_atom]
       {_, _, expected_len} = get_curve_info(alg)
 
@@ -47,6 +48,10 @@ defmodule COSE.Keys.ECC do
   end
 
   def decode(_), do: {:error, :invalid_cose_key}
+
+  defp unwrap_bytes(%CBOR.Tag{tag: :bytes, value: bin}) when is_binary(bin), do: {:ok, bin}
+  defp unwrap_bytes(bin) when is_binary(bin), do: {:ok, bin}
+  defp unwrap_bytes(_), do: :error
 
   def from_record(pem_record) do
     {:ECPrivateKey, _, priv_d, {:namedCurve, oid}, pub_bits, _} = pem_record
