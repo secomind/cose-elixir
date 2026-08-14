@@ -59,5 +59,12 @@ defmodule COSETest.CWT do
       retrived_claims = cwt |> Map.delete(:issued_at)
       assert ^claims = retrived_claims
     end
+
+    test "peek claims without verifying the signature", %{key: key, claims: claims} do
+      {:ok, token} = CWT.sign_encode_cbor(claims, key)
+
+      retrived_claims = CWT.peek_claims(token) |> Map.delete(:issued_at)
+      assert ^claims = retrived_claims
+    end
   end
 end

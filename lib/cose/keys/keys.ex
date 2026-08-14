@@ -11,7 +11,6 @@ defmodule COSE.Keys do
   alias COSE.Keys.RSA
 
   @oid_rsa {1, 2, 840, 113_549, 1, 1, 1}
-  @oid_ec {1, 2, 840, 10045, 2, 1}
 
   def sign(key, digest_type, to_be_signed), do: Key.sign(key, digest_type, to_be_signed)
 
@@ -66,9 +65,6 @@ defmodule COSE.Keys do
         {:ok, RSA.from_record(record)}
 
       {:ECPrivateKey, _, _, _, _, _} ->
-        {:ok, ECC.from_record(pem_record)}
-
-      {:PrivateKeyInfo, _, {_, @oid_ec, _}, _, _} ->
         {:ok, ECC.from_record(pem_record)}
 
       _ ->

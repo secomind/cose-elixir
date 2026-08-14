@@ -87,7 +87,7 @@ defmodule COSE.CWT do
   end
 
   def peek_claims(token, custom_claims \\ %{}) do
-    msg = Sign1.decode(token)
+    {:ok, msg} = Sign1.decode_cbor(token)
     {:ok, cbor_claims, ""} = CBOR.decode(msg.payload.value)
 
     cbor_claims

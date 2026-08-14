@@ -93,7 +93,7 @@ defmodule COSE.Messages.Encrypt0 do
 
   def split_encrypted_tag(ciphertext, tag_len \\ 16) do
     encrypted_len = byte_size(ciphertext) - tag_len
-    <<encrypted::binary-size(encrypted_len), tag::binary-size(tag_len)>> = ciphertext
+    <<encrypted::binary-size(^encrypted_len), tag::binary-size(^tag_len)>> = ciphertext
     {encrypted, tag}
   end
 end

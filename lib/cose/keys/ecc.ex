@@ -18,7 +18,7 @@ defmodule COSE.Keys.ECC do
     {curve, cose_crv, key_len} = get_curve_info(alg)
     {pub, priv} = :crypto.generate_key(:ecdh, curve)
 
-    <<4, x::binary-size(key_len), y::binary-size(key_len)>> = pub
+    <<4, x::binary-size(^key_len), y::binary-size(^key_len)>> = pub
 
     %__MODULE__{
       kty: :ecc,
@@ -70,7 +70,7 @@ defmodule COSE.Keys.ECC do
       end
 
     case final_pub do
-      <<4, x::binary-size(key_len), y::binary-size(key_len)>> ->
+      <<4, x::binary-size(^key_len), y::binary-size(^key_len)>> ->
         %__MODULE__{
           kty: :ecc,
           crv: cose_crv,
@@ -128,7 +128,7 @@ defmodule COSE.Keys.ECC do
 
   defp bitstring_to_binary(val) when is_bitstring(val) do
     size = bit_size(val)
-    <<bin::binary-size(div(size, 8)), _::bitstring>> = val
+    <<bin::binary-size(div(^size, 8)), _::bitstring>> = val
 
     bin
   end
@@ -183,7 +183,7 @@ defimpl COSE.Keys.Key, for: COSE.Keys.ECC do
 
   def raw_to_der(raw_sig, key_size) do
     case raw_sig do
-      <<r::binary-size(key_size), s::binary-size(key_size)>> ->
+      <<r::binary-size(^key_size), s::binary-size(^key_size)>> ->
         (encode_integer(r) <> encode_integer(s))
         |> wrap_sequence()
         |> then(&{:ok, &1})
