@@ -66,23 +66,25 @@ defmodule COSE.Messages.Mac0 do
     end
   end
 
-  def from_message(msg) do
-    with %CBOR.Tag{tag: 17, value: [phdr, uhdr, payload_tag, tag]} <- msg,
-         %CBOR.Tag{tag: :bytes, value: payload} <- payload_tag,
-         {:ok, phdr} <- COSE.Headers.decode_phdr(phdr) do
+  def from_message(%CBOR.Tag{
+        tag: 17,
+        value: [phdr, uhdr, %CBOR.Tag{tag: :bytes, value: payload}, tag]
+      }) do
+    with {:ok, phdr} <- COSE.Headers.decode_phdr(phdr),
+         {:ok, uhdr} <- COSE.Headers.safe_translate_back(uhdr) do
       decoded =
         %__MODULE__{
           phdr: phdr,
-          uhdr: COSE.Headers.translate_back(uhdr),
+          uhdr: uhdr,
           payload: payload,
           tag: tag
         }
 
       {:ok, decoded}
-    else
-      _ -> :error
     end
   end
+
+  def from_message(_msg), do: {:error, :malformed_message}
 
   def mac_structure(msg, external_aad \\ <<>>) do
     [

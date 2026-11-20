@@ -66,4 +66,41 @@ defmodule COSETest do
     phdr = Headers.tag_phdr(%{alg: :eddsa})
     assert Headers.decode_phdr(phdr) == {:ok, %{alg: :eddsa}}
   end
+
+  test "decode_phdr/1 rejects malformed protected headers" do
+    for phdr <- [
+          %{1 => -8},
+          5,
+          "text",
+          COSE.tag_as_byte(<<>>),
+          COSE.tag_as_byte(CBOR.encode([1])),
+          COSE.tag_as_byte(CBOR.encode(%{1 => -8}) <> <<0>>),
+          COSE.tag_as_byte(CBOR.encode(%CBOR.Tag{tag: 1, value: 3})),
+          COSE.tag_as_byte(<<0x1C>>)
+        ] do
+      assert Headers.decode_phdr(phdr) == {:error, :malformed_message}
+    end
+  end
+
+  test "safe_translate_back/1 translates a plain map" do
+    iv = COSE.tag_as_byte(<<1, 2, 3>>)
+
+    assert Headers.safe_translate_back(%{1 => -8, 5 => iv, 99 => 1}) ==
+             {:ok, %{99 => 1, alg: :eddsa, iv: iv}}
+  end
+
+  test "safe_translate_back/1 rejects values that are not plain maps" do
+    for hdr <- [
+          7,
+          nil,
+          "text",
+          [1, 2],
+          [{1, -8}],
+          %CBOR.Tag{tag: 1, value: 3},
+          COSE.tag_as_byte(<<1>>),
+          ~U[2020-01-01 00:00:00Z]
+        ] do
+      assert Headers.safe_translate_back(hdr) == {:error, :malformed_message}
+    end
+  end
 end

@@ -83,9 +83,9 @@ defmodule COSE.Messages.Recipient do
   def decode_many(recipients) do
     recipients = Enum.map(recipients, &decode/1)
 
-    case Enum.find(recipients, :ok, &(&1 == :error)) do
+    case Enum.find(recipients, :ok, &match?({:error, _reason}, &1)) do
       :ok -> {:ok, Enum.map(recipients, fn {:ok, recipient} -> recipient end)}
-      :error -> :error
+      error -> error
     end
   end
 end

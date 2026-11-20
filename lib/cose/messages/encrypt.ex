@@ -69,24 +69,23 @@ defmodule COSE.Messages.Encrypt do
     end
   end
 
-  def decode(msg) do
-    with %CBOR.Tag{tag: 96, value: [phdr, uhdr, ciphertext, recipients]} <- msg,
-         {:ok, phdr} <- COSE.Headers.decode_phdr(phdr),
+  def decode(%CBOR.Tag{tag: 96, value: [phdr, uhdr, ciphertext, recipients]}) do
+    with {:ok, phdr} <- COSE.Headers.decode_phdr(phdr),
+         {:ok, uhdr} <- COSE.Headers.safe_translate_back(uhdr),
          {:ok, recipients} <- COSE.Messages.Recipient.decode_many(recipients) do
       decoded =
         %__MODULE__{
           phdr: phdr,
-          uhdr: COSE.Headers.translate_back(uhdr),
+          uhdr: uhdr,
           ciphertext: ciphertext,
           recipients: recipients
         }
 
       {:ok, decoded}
-    else
-      _ ->
-        :error
     end
   end
+
+  def decode(_msg), do: {:error, :malformed_message}
 
   def enc_structure(msg, external_aad \\ <<>>) do
     [

@@ -92,4 +92,21 @@ defmodule COSETest.Encrypt do
       assert retrieved_msg.payload == msg.payload
     end
   end
+
+  test "rejects a recipient with a malformed protected header" do
+    valid = Recipient.encode(%Recipient{phdr: %{alg: :ecdh_ss_hkdf_256}, ciphertext: <<>>})
+    malformed = [COSE.tag_as_byte(<<>>), %{}, COSE.tag_as_byte(<<>>)]
+
+    assert {:error, :malformed_message} == Recipient.decode_many([valid, malformed])
+  end
+
+  test "rejects an unprotected header that is not a map" do
+    phdr = Headers.tag_phdr(%{alg: :aes_ccm_16_64_128})
+    recipient = Recipient.encode(%Recipient{phdr: %{alg: :ecdh_ss_hkdf_256}, ciphertext: <<>>})
+
+    for uhdr <- [7, [1, 2], %CBOR.Tag{tag: 1, value: 3}] do
+      msg = %CBOR.Tag{tag: 96, value: [phdr, uhdr, COSE.tag_as_byte(<<>>), [recipient]]}
+      assert {:error, :malformed_message} == Encrypt.decode(msg)
+    end
+  end
 end
